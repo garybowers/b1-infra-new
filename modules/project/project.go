@@ -15,6 +15,13 @@ type ProjectArgs struct {
 	OrgId             string
 }
 
-func Create(ctx *pulumi.Context) error {
-	folder, err := organizations.NewProject(ctx, *Project)
+type Project struct {
+	Args *ProjectArgs
+        Name string
+}
+
+func (project *Project) Create(ctx *pulumi.Context) error {
+	project, err := organizations.NewProject(ctx, project.Name, project.Args)
+	fmt.Println(project)
+	return err
 }
