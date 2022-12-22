@@ -1,3 +1,3 @@
-module github.com/garybowers/b1-infra-new/modules/project
+module project
 
 go 1.19
