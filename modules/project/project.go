@@ -21,7 +21,7 @@ type Project struct {
 }
 
 func (project *Project) Create(ctx *pulumi.Context) error {
-	project, err := organizations.NewProject(ctx, project.Name, project.Args)
+	gcpProject, err := organizations.NewProject(ctx, project.Name, *project.Args)
 	fmt.Println(project)
 	return err
 }
