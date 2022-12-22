@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"github.com/garybowers/b1-infra-new/modules/project"
+	"modules/project"
 )
 
 func main() {
