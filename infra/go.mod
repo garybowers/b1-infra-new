@@ -4,8 +4,11 @@ go 1.19
 
 require (
 	github.com/garybowers/b1-infra-new/modules/project v0.0.0-20221222111056-dc2157e05c8a
+	github.com/pulumi/pulumi-gcp/sdk/v6 v6.45.0
 	github.com/pulumi/pulumi/sdk/v3 v3.50.2
 )
+
+replace github.com/garybowers/b1-infra-new/modules/project v0.0.0-20221222111056-dc2157e05c8a => ../modules/project
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
@@ -39,7 +42,6 @@ require (
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/term v1.1.0 // indirect
-	github.com/pulumi/pulumi-gcp/sdk/v6 v6.45.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
