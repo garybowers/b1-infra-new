@@ -1,11 +1,10 @@
 package project
 
 import (
-	"crypto/rand"
-	"fmt"
-	"io"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/organizations"
+	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"log"
 )
 
 type ProjectArgs struct {
@@ -18,20 +17,6 @@ type ProjectArgs struct {
 	OrgId             string
 }
 
-var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
-
-func encodeToString(max int) string {
-	b := make([]byte, max)
-	n, err := io.ReadAtLeast(rand.Reader, b, max)
-	if n != max {
-		panic(err)
-	}
-	for i := 0; i < len(b); i++ {
-		b[i] = table[int(b[i])%len(table)]
-	}
-	return string(b)
-}
-
 type Project struct {
 	Args ProjectArgs
 	Name string
@@ -41,8 +26,17 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 	args := &organizations.ProjectArgs{}
 	args.Name = pulumi.String(project.Args.Name)
 	if project.Args.ProjectId == "" {
-		postfix := encodeToString(6)
-		args.ProjectId = pulumi.String(project.Args.Name + "-" + postfix)
+		postfix, err := random.NewRandomString(ctx, "random", &random.RandomStringArgs{
+			Length:  pulumi.Int(6),
+			Special: pulumi.Bool(false),
+			Upper:   pulumi.Bool(false),
+			Lower:   pulumi.Bool(false),
+		})
+		if err != nil {
+			log.Println(err)
+		}
+
+		args.ProjectId = pulumi.Sprintf("%s-%s", project.Args.Name, postfix.Result)
 	} else {
 		args.ProjectId = pulumi.String(project.Args.ProjectId)
 	}
@@ -58,10 +52,7 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 
 	//args.Labels = project.Args.Labels
 
-	fmt.Println(args)
-
 	gcpProject, err = organizations.NewProject(ctx, project.Args.Name, args)
-	fmt.Println(gcpProject)
 	ctx.Export("project", gcpProject)
 	return gcpProject, err
 }
