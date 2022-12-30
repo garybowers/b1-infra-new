@@ -4,11 +4,15 @@ go 1.19
 
 require (
 	github.com/garybowers/b1-infra-new/modules/project v0.0.0-20221222111056-dc2157e05c8a
+	github.com/garybowers/b1-infra-new/modules/vpc v0.0.0-20221227160941-f5059699c0bd
 	github.com/pulumi/pulumi-gcp/sdk/v6 v6.45.0
 	github.com/pulumi/pulumi/sdk/v3 v3.50.2
 )
 
-replace github.com/garybowers/b1-infra-new/modules/project v0.0.0-20221222111056-dc2157e05c8a => ../modules/project
+replace (
+	github.com/garybowers/b1-infra-new/modules/project v0.0.0-20221222111056-dc2157e05c8a => ../modules/project
+	github.com/garybowers/b1-infra-new/modules/vpc v0.0.0-20221227160941-f5059699c0bd => ../modules/vpc
+)
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect

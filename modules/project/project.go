@@ -1,7 +1,9 @@
 package project
 
 import (
+	"fmt"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/organizations"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/projects"
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"log"
@@ -15,6 +17,7 @@ type ProjectArgs struct {
 	FolderId          string
 	Labels            map[string]string
 	OrgId             string
+	Services          []string
 }
 
 type Project struct {
@@ -23,10 +26,12 @@ type Project struct {
 }
 
 func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.Project, err error) {
+
 	args := &organizations.ProjectArgs{}
 	args.Name = pulumi.String(project.Args.Name)
+
 	if project.Args.ProjectId == "" {
-		postfix, err := random.NewRandomString(ctx, "random", &random.RandomStringArgs{
+		postfix, err := random.NewRandomString(ctx, fmt.Sprintf("postfix-%s", args.Name), &random.RandomStringArgs{
 			Length:  pulumi.Int(6),
 			Special: pulumi.Bool(false),
 			Upper:   pulumi.Bool(false),
@@ -35,7 +40,6 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 		if err != nil {
 			log.Println(err)
 		}
-
 		args.ProjectId = pulumi.Sprintf("%s-%s", project.Args.Name, postfix.Result)
 	} else {
 		args.ProjectId = pulumi.String(project.Args.ProjectId)
@@ -53,6 +57,28 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 	//args.Labels = project.Args.Labels
 
 	gcpProject, err = organizations.NewProject(ctx, project.Args.Name, args)
-	ctx.Export("project", gcpProject)
+	err = project.EnableServices(ctx, pulumi.String(args.ProjectId), project.Args.Services)
+	if err != nil {
+		log.Println(err)
+	}
+
+	ctx.Export(fmt.Sprintf("%s", args.Name),gcpProject)
 	return gcpProject, err
+}
+
+func (project *Project) EnableServices(ctx *pulumi.Context, projectId pulumi.String, Services []string) (err error) {
+	for _, s := range Services {
+		fmt.Println(s)
+		_, err := projects.NewService(ctx,fmt.Sprintf("service-%s-%s",pulumi.String(projectId),s),&projects.ServiceArgs{
+			DisableDependentServices: pulumi.Bool(false),
+			DisableOnDestroy:         pulumi.Bool(false),
+			Project:                  projectId,
+			Service:                  pulumi.String(s),
+		})
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+	return err
 }
