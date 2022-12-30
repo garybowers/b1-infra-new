@@ -1,9 +1,10 @@
 package network
 
 import (
+	"fmt"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/compute"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"fmt"
+	"log"
 )
 
 type VpcArgs struct {
@@ -28,15 +29,14 @@ func (vpc *Vpc) Create(ctx *pulumi.Context) (vpcNetwork *compute.Network, err er
 	args.Project = vpc.Args.ProjectId
 	args.AutoCreateSubnetworks = pulumi.Bool(vpc.Args.AutoCreateSubnetworks)
 
-	var projectId string
-	vpc.Args.ProjectId.ApplyT(func(p string) error {
-		projectId = fmt.Sprintf("%s", p)
-		return nil
+	vpc.Args.ProjectId.ApplyT(func(pid string) error {
+		vpcNetwork, err = compute.NewNetwork(ctx, fmt.Sprintf("%s-%s", pid, args.Name), args)
+		return err
 	})
+	if err != nil {
+		log.Println(err)
+	}
 
-	fmt.Println(projectId)
-
-	vpcNetwork, err = compute.NewNetwork(ctx, fmt.Sprintf("%s-%s",projectId,args.Name), args)
 	ctx.Export("vpc", vpcNetwork)
 	return vpcNetwork, err
 }

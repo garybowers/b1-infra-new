@@ -27,6 +27,7 @@ type Project struct {
 
 func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.Project, err error) {
 
+	var prefix string
 	args := &organizations.ProjectArgs{}
 	args.Name = pulumi.String(project.Args.Name)
 
@@ -41,6 +42,8 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 			log.Println(err)
 		}
 		args.ProjectId = pulumi.Sprintf("%s-%s", project.Args.Name, postfix.Result)
+		prefix = fmt.Sprintf("%s-%s", project.Args.Name, pulumi.Sprintf("%s", postfix.Result))
+		fmt.Println(prefix)
 	} else {
 		args.ProjectId = pulumi.String(project.Args.ProjectId)
 	}
@@ -57,28 +60,30 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 	//args.Labels = project.Args.Labels
 
 	gcpProject, err = organizations.NewProject(ctx, project.Args.Name, args)
-	err = project.EnableServices(ctx, pulumi.String(args.ProjectId), project.Args.Services)
+	err = project.EnableServices(ctx, gcpProject.ProjectId, project.Args.Services)
 	if err != nil {
 		log.Println(err)
 	}
 
-	ctx.Export(fmt.Sprintf("%s", args.Name),gcpProject)
+	ctx.Export("projectId", gcpProject.ProjectId)
 	return gcpProject, err
 }
 
-func (project *Project) EnableServices(ctx *pulumi.Context, projectId pulumi.String, Services []string) (err error) {
-	for _, s := range Services {
-		fmt.Println(s)
-		_, err := projects.NewService(ctx,fmt.Sprintf("service-%s-%s",pulumi.String(projectId),s),&projects.ServiceArgs{
-			DisableDependentServices: pulumi.Bool(false),
-			DisableOnDestroy:         pulumi.Bool(false),
-			Project:                  projectId,
-			Service:                  pulumi.String(s),
-		})
-		if err != nil {
-			log.Println(err)
-			return err
+func (project *Project) EnableServices(ctx *pulumi.Context, projectId pulumi.StringOutput, Services []string) (err error) {
+	projectId.ApplyT(func(pid string) error {
+		for i, s := range Services {
+			fmt.Println(s)
+			_, err := projects.NewService(ctx, fmt.Sprintf("service-%s-%d-%s", pid, i, s), &projects.ServiceArgs{
+				DisableDependentServices: pulumi.Bool(false),
+				DisableOnDestroy:         pulumi.Bool(false),
+				Project:                  projectId,
+				Service:                  pulumi.String(s),
+			})
+			if err != nil {
+				log.Println(err)
+			}
 		}
-	}
-	return err
+		return err
+	})
+	return nil
 }
