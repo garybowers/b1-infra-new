@@ -35,7 +35,10 @@ func main() {
 			log.Println(err)
 		}
 		fmt.Println(vpcNetwork)
+		return nil
+	})
 
+	pulumi.Run(func(ctx *pulumi.Context) error {
 		project.Args.Name = "b1-services-2"
 		project.Args.FolderId = "folders/415061719873"
 		project.Args.BillingAccount = "01504C-A2522F-2110FA"
@@ -48,6 +51,16 @@ func main() {
 			log.Println(err)
 		}
 		fmt.Println(prj2)
+		vpc.Args.Name = "vpc-1"
+		vpc.Args.ProjectId = prj.ProjectId
+		//vpc.Args.Project = pulumi.Sprintf("%s", prj.ProjectId)
+
+
+		vpcNetwork, err := vpc.Create(ctx)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(vpcNetwork)
 
 		return nil
 	})
