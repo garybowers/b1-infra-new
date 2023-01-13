@@ -2,9 +2,9 @@ package network
 
 import (
 	"fmt"
+	"log"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/compute"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"log"
 )
 
 type VpcArgs struct {
@@ -23,20 +23,26 @@ type Vpc struct {
 	Name string
 }
 
-func (vpc *Vpc) Create(ctx *pulumi.Context) (vpcNetwork *compute.Network, err error) {
+func (vpc *Vpc) Create(ctx *pulumi.Context) (vpcNetwork pulumi.Output, err error) {
 	args := &compute.NetworkArgs{}
 	args.Name = pulumi.String(vpc.Args.Name)
+	args.Description = pulumi.String(vpc.Args.Description)
 	args.Project = vpc.Args.ProjectId
 	args.AutoCreateSubnetworks = pulumi.Bool(vpc.Args.AutoCreateSubnetworks)
+	args.DeleteDefaultRoutesOnCreate = pulumi.Bool(vpc.Args.DeleteDefaultRoutesOnCreate)
 
-	vpc.Args.ProjectId.ApplyT(func(pid string) error {
-		vpcNetwork, err = compute.NewNetwork(ctx, fmt.Sprintf("%s-%s", pid, args.Name), args)
-		return err
+
+	vpcSL := vpc.Args.ProjectId.ApplyT(func(pid string) pulumi.StringOutput {
+		vpcnetwork, err := compute.NewNetwork(ctx, fmt.Sprintf("%s-%s", pid, args.Name), args)
+		if err != nil {
+			log.Println(err)
+		}
+		return vpcnetwork.SelfLink
 	})
-	if err != nil {
-		log.Println(err)
-	}
 
-	ctx.Export("vpc", vpcNetwork)
-	return vpcNetwork, err
+
+
+	//ctx.Export("vpc", vpct.ID())
+	//return vpct, err
+	return vpcSL, err
 }

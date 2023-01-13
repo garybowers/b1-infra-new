@@ -10,7 +10,8 @@ import (
 
 func main() {
 	var project project.Project
-	var vpc  network.Vpc
+	var vpc network.Vpc
+	var subnet network.Subnet
 
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		project.Args.Name = "b1-services-new"
@@ -34,9 +35,21 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Println(vpcNetwork)
+		fmt.Println("NETWORK:")
+
+		subnet.Args.Name = "euw1"
+		subnet.Args.Description = "europe-west1"
+		subnet.Args.ProjectId = prj.ProjectId
+		subnet.Args.Region = "europe-west1"
+		subnet.Args.IpCidrRange = "10.76.34.0/22"
+		subnet.Args.Network = vpcNetwork
+
+		subnet, err := subnet.Create(ctx)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(subnet)
+
 		return nil
-
-
 	})
 }

@@ -26,8 +26,6 @@ type Project struct {
 }
 
 func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.Project, err error) {
-
-	var prefix string
 	args := &organizations.ProjectArgs{}
 	args.Name = pulumi.String(project.Args.Name)
 
@@ -42,8 +40,6 @@ func (project *Project) Create(ctx *pulumi.Context) (gcpProject *organizations.P
 			log.Println(err)
 		}
 		args.ProjectId = pulumi.Sprintf("%s-%s", project.Args.Name, postfix.Result)
-		prefix = fmt.Sprintf("%s-%s", project.Args.Name, pulumi.Sprintf("%s", postfix.Result))
-		fmt.Println(prefix)
 	} else {
 		args.ProjectId = pulumi.String(project.Args.ProjectId)
 	}
